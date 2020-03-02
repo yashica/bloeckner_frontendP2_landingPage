@@ -159,16 +159,11 @@ function setTopSectionActive() {
 
 //determine, if the given section is near the top of the page
 function isTopSection(section) {
-  const yOffset_nav = document.querySelector(".page__header").clientHeight;
   const sectionTop = section.getBoundingClientRect().top;
   const sectionHeight = section.getBoundingClientRect().height;
 
-  //section is activated when top of section is between
-  //position right below menu - 1/3 of section height
-  //and position right below menu + 2/3 of section height
-  const threshholdTop = -(yOffset_nav - sectionHeight / 3);
-  const threshholdBottom =
-    threshholdTop + (section.getBoundingClientRect().height / 3) * 2;
+  const threshholdTop = 0;
+  const threshholdBottom = threshholdTop + sectionHeight;
 
   const isTopSection =
     sectionTop >= threshholdTop && sectionTop <= threshholdBottom;
@@ -194,8 +189,8 @@ console.log("Initial number of sections = ", getNumberOfSections());
 // build nav for the existing sections
 buildStarterNav();
 console.log("Initial Navigation built");
-//add 3 new sections to the page
-addNewSections(3);
+//add 2 more new sections programmatically to the page
+addNewSections(2);
 
 console.log(
   "All sections added - number of sections = " +
