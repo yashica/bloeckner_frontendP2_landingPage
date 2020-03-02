@@ -47,68 +47,41 @@ function addLinkToNav(section) {
   newLi.className = "menu__link";
 
   newLi.addEventListener("click", function(event) {
-    console.log("Navitem " + navItemText + " clicked!");
     event.preventDefault();
-    //section.scrollIntoView({ left: 0, block: "start", behavior: "smooth" });
-    //const yOffset = 10;
-    //document.getElementById("page__header")
-    //.getBoundingClientRect.height;
-    const yOffset_custom = 0;
-    const yOffset_nav = -navbarlist.getBoundingClientRect().height; //-200;
-    const yOffset = yOffset_nav + yOffset_custom;
-    const yPos =
-      section.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    //window.scrollTo(0, yPos);
-    window.scrollTo({ top: yPos, behavior: "smooth" });
-    //window.scrollTo({ y: yPos, behavior: "smooth" });
-    /*     const yOffset = 0; //-10;
-    //const element = document.getElementById(id);
-    const yPos =
-      section.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    section.scrollTo({ y: yPos, behavior: "smooth" }); */
+    jumpToSection(section);
   });
-  /*   const sectionId = "section" + sectionNr;
-  newLi.innerHTML = "<a href='#" + sectionId + "'>" + navItemText + "</a>"; */
 
   navbarlist.appendChild(newLi);
-  //return newLi;
+}
+
+function jumpToSection(section) {
+  /*   const yOffset_nav = document
+    .getElementById("navbar__list")
+    .getBoundingClientRect().height; */
+  console.log(
+    "in jumpToSection: topPos = " + section.getBoundingClientRect().top
+  );
+  const yOffset_nav = document.getElementById("navbar__list").clientHeight;
+  const yPos =
+    section.getBoundingClientRect().top + window.pageYOffset - yOffset_nav;
+  window.scrollTo({ top: yPos, behavior: "smooth" });
 }
 
 function buildStarterNav() {
-  //const navbarlist = document.getElementById("navbar__list");
   const sections = document.getElementsByTagName("section");
 
   for (const section of sections) {
     const newLi = addLinkToNav(section);
-    //navbarlist.appendChild(newLi);
+    section.addEventListener("click", function(event) {
+      setActiveSection(event);
+    });
+    //section.addEventListener("click", setActiveSection);
+    /* section.addEventListener("click", function() {
+      console.log(section.getAttribute("data-nav") + " was clicked!");
+      section.classList.toggle("your-active-class");
+    }); */
   }
-
-  /*   sections.forEach(element => {
-    const newLi = createNavItem(element.getAttribute("data-nav"), index);
-    navbarlist.appendChild(newLi);
-    i++;
-  }); */
-
-  /*   for (let i = 1; i <= 3; i++) {
-    //TODO: get section, retrieve attribute data-nav
-    //change createNavItem: pass whole section
-    //add eventlistener in createNavItem
-    const newLi = createNavItem(i);
-    navbarlist.appendChild(newLi);
-  } */
 }
-/*
-  sections.forEach(element => {
-    const newLi = createNavItem(element.getAttribute("data-nav"));
-  });
-  function createNavItem(navItemText) {
-    const newLi = document.createElement("li");
-    const sectionId = "section" + sectionNr;
-    newLi.innerHTML = "<a href='#" + sectionId + "'>" + navItemText + "</a>";
-    newLi.className = "menu__link";
-    return newLi;
-  }
-*/
 
 function addNewSection() {
   //get the number of the new section
@@ -149,13 +122,27 @@ function addNewSection() {
   newDiv.appendChild(newP2);
   newSection.appendChild(newDiv);
 
+  //add a clickListener
+  /* newSection.addEventListener("click", function() {
+    console.log(newSection.getAttribute("data-nav") + " was clicked!");
+    newSection.classList.toggle("your-active-class");
+  }); */
+  newSection.addEventListener("click", function(event) {
+    setActiveSection(event);
+  });
+
+  //newSection.addEventListener("click", setActiveSection(section));
+
   //..and add the new section to the main item
   const mainItem = document.querySelector("main");
   mainItem.appendChild(newSection);
 
   //add a new nav item for the new section
   const newLi = addLinkToNav(newSection);
-  //navbarlist.appendChild(newLi);
+
+  console.log(
+    "New section with id " + newSection.getAttribute("id") + " added."
+  );
 }
 
 /**
@@ -170,53 +157,120 @@ console.log("Initial number of sections = ", getNumberOfSections());
 buildStarterNav();
 console.log("Initial Navigation built");
 //add 3 new sections to the page
+console.log("Add 3 new section:");
 for (let i = 1; i <= 3; i++) {
   addNewSection();
-  console.log(i + ". new section added");
 }
-
-// Add class 'active' to section when near top of viewport
-//////////////////////////////
-function isElementInViewport(element) {
-  var rect = element.getBoundingClientRect();
-  return (
-    rect.top >= 0 &&
-    rect.left >= 0 &&
-    rect.bottom <=
-      (window.innerHeight || document.documentElement.clientHeight) &&
-    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+const sections = document.getElementsByTagName("section");
+console.log("All sections added - number of sections = " + sections.length);
+/* 
+console.log("***Section Position Test***");
+for (const section of sections) {
+  const sectionTopPosition = section.getBoundingClientRect().top;
+  console.log(
+    section.getAttribute("data-nav") + " topposition = " + sectionTopPosition
   );
 }
+console.log("***End of Section Position Test***"); */
 
-//var elements = document.querySelectorAll("section");
-const sections = document.getElementsByTagName("section");
+// Add class 'active' to section when near top of viewport
+function isTopSection(section) {
+  const yOffset_nav = document.getElementById("navbar__list").clientHeight;
+  const sectionHeight = section.getBoundingClientRect().height;
+  const sectionTop = section.getBoundingClientRect().top;
+  const threshholdTop = -(yOffset_nav - sectionHeight / 2);
+  //section.getBoundingClientRect().top + window.pageYOffset - yOffset_nav;
+  //section.getBoundingClientRect().top + window.pageYOffset - yOffset_nav;
+  const threshholdBottom =
+    threshholdTop + section.getBoundingClientRect().height / 2;
 
-function callbackFunc() {
+  console.log("isTopSection( " + section.getAttribute("data-nav") + " ):");
+  //console.log("yOffset_nav = " + yOffset_nav);
+  //console.log("window.pageYOffset = " + window.pageYOffset);
+  console.log("threshholdTop: " + threshholdTop);
+  console.log("threshholdBottom: " + threshholdBottom);
+  console.log(section.getAttribute("data-nav") + " sectionTop: " + sectionTop);
+
+  const isTopSection =
+    sectionTop >= threshholdTop && sectionTop <= threshholdBottom;
+
+  /*   console.log(
+    " => " +
+      section.getAttribute("data-nav") +
+      " isTopSection = " +
+      isTopSection
+  ); */
+
+  return isTopSection;
+}
+
+/* function isTopSection(section) {
+  const yOffset_nav = document.getElementById("navbar__list").clientHeight;
+  const sectionTop = section.getBoundingClientRect().top;
+  const threshholdTop = window.pageYOffset + yOffset_nav;
+  //section.getBoundingClientRect().top + window.pageYOffset - yOffset_nav;
+  //section.getBoundingClientRect().top + window.pageYOffset - yOffset_nav;
+  const threshholdBottom =
+    threshholdTop + section.getBoundingClientRect().height;
+
+  console.log("isTopSection( " + section.getAttribute("data-nav") + " ):");
+  console.log("yOffset_nav = " + yOffset_nav);
+  console.log("window.pageYOffset = " + window.pageYOffset);
+  console.log("threshholdTop = yOffset_nav + yOffset_nav" + threshholdTop);
+  console.log("threshholdBottom = " + threshholdBottom);
+  console.log("! sectionTop = " + sectionTop + " !");
+
+  const isTopSection =
+    sectionTop >= threshholdTop && sectionTop <= threshholdBottom;
+
+  console.log(" => isTopSection = " + isTopSection);
+
+  return isTopSection;
+} */
+
+function callbackFunc(event) {
   console.log("LOAD or SCROLL");
-  for (let i = 0; i < sections.length; i++) {
-    const section = sections[i];
+
+  const sections = document.getElementsByTagName("section");
+
+  for (const section of sections) {
+    const sectionIsTopSection = isTopSection(section);
     console.log(
       section.getAttribute("data-nav") +
-        " is in viewport: " +
-        isElementInViewport(section)
+        " is top section: " +
+        isTopSection(section)
     );
-    /*     if (isElementInViewport(section)) {
-      console.log(section.getAttribute("data-nav") + " is in viewport");
+    if (sectionIsTopSection) {
+      section.classList.add("your-active-class");
     } else {
-      console.log(section.getAttribute("data-nav"));
-    } */
-  }
-  /*
-  for (var i = 0; i < sections.length; i++) {
-    if (isElementInViewport(sections[i])) {
-      sections[i].classList.add("your-active-class");
+      section.classList.remove("your-active-class");
     }
-         else {
-      //Else-Bedinung entfernen, um .visible nicht wieder zu löschen, wenn das Element den Viewport verlässt.
-      sections[i].classList.remove("your-active-class");
-    } 
-  } */
+    /*     const sectionTopPosition = section.getBoundingClientRect().top;
+    console.log(
+      section.getAttribute("data-nav") + " topposition = " + sectionTopPosition
+    );
+    console.log(
+      section.getAttribute("data-nav") +
+        " is top section: " +
+        isTopSection(section)
+    ); */
+  }
+  //console.log("          ++++++          ");
 }
+
+/* document.addEventListener("DOMContentLoaded", function() {
+  const sections = document.getElementsByTagName("section");
+  console.log("OnDOMContentLoaded: sections.length = " + sections.length);
+
+  console.log("***Section Position Test II ***");
+  for (const section of sections) {
+    const sectionTopPosition = section.getBoundingClientRect.top;
+    console.log(
+      section.getAttribute("data-nav") + " topposition = " + sectionTopPosition
+    );
+  }
+  console.log("***End of Section Position Test II ***");
+}); */
 
 window.addEventListener("load", callbackFunc);
 window.addEventListener("scroll", callbackFunc);
@@ -234,9 +288,23 @@ window.addEventListener("scroll", callbackFunc);
 // Build menu
 
 // Scroll to section on link click
-function crollIntoView(event, section) {
+
+/* function crollIntoView(event, section) {
   event.preventDefault();
   section.scrollIntoView({ left: 0, block: "start", behavior: "smooth" });
-}
+} */
 
 // Set sections as active
+function setActiveSection(event) {
+  const sections = document.getElementsByTagName("section");
+  const clickedSection = console.log(
+    event.target.getAttribute("data-nav") + " was clicked!"
+  );
+  for (const section of sections) {
+    if (event.target === section) {
+      section.classList.add("your-active-class");
+    } else {
+      section.classList.remove("your-active-class");
+    }
+  }
+}
