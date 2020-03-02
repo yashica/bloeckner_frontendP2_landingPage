@@ -28,45 +28,6 @@ function getNumberOfSections() {
   return sections.length;
 }
 
-/* function createNavItem(navItemText, index) {
-  const newLi = document.createElement("li");
-  const sectionId = "section" + index;
-  newLi.innerHTML = "<a href='#" + sectionId + "'>Section " + index + "</a>";
-  //newLi.innerHTML = "<a href='#" + sectionId + "'>" + navItemText + "</a>";
-  newLi.className = "menu__link";
-  return newLi;
-} */
-
-function addLinkToNav(section) {
-  const navbarlist = document.getElementById("navbar__list");
-
-  const newLi = document.createElement("li");
-  const navItemText = section.getAttribute("data-nav");
-
-  newLi.textContent = navItemText;
-  newLi.className = "menu__link";
-
-  newLi.addEventListener("click", function(event) {
-    event.preventDefault();
-    jumpToSection(section);
-  });
-
-  navbarlist.appendChild(newLi);
-}
-
-function jumpToSection(section) {
-  /*   const yOffset_nav = document
-    .getElementById("navbar__list")
-    .getBoundingClientRect().height; */
-  console.log(
-    "in jumpToSection: topPos = " + section.getBoundingClientRect().top
-  );
-  const yOffset_nav = document.getElementById("navbar__list").clientHeight;
-  const yPos =
-    section.getBoundingClientRect().top + window.pageYOffset - yOffset_nav;
-  window.scrollTo({ top: yPos, behavior: "smooth" });
-}
-
 function buildStarterNav() {
   const sections = document.getElementsByTagName("section");
 
@@ -75,16 +36,11 @@ function buildStarterNav() {
     section.addEventListener("click", function(event) {
       setActiveSection(event);
     });
-    //section.addEventListener("click", setActiveSection);
-    /* section.addEventListener("click", function() {
-      console.log(section.getAttribute("data-nav") + " was clicked!");
-      section.classList.toggle("your-active-class");
-    }); */
   }
 }
 
 function addNewSection() {
-  //get the number of the new section
+  //get the number for the new section
   const sectionNr = getNumberOfSections() + 1;
 
   //create all elements and add their content and attributes
@@ -122,27 +78,96 @@ function addNewSection() {
   newDiv.appendChild(newP2);
   newSection.appendChild(newDiv);
 
-  //add a clickListener
-  /* newSection.addEventListener("click", function() {
-    console.log(newSection.getAttribute("data-nav") + " was clicked!");
-    newSection.classList.toggle("your-active-class");
-  }); */
-  newSection.addEventListener("click", function(event) {
-    setActiveSection(event);
-  });
-
-  //newSection.addEventListener("click", setActiveSection(section));
-
   //..and add the new section to the main item
   const mainItem = document.querySelector("main");
   mainItem.appendChild(newSection);
 
-  //add a new nav item for the new section
+  //call addLinkToNav(newSection) to add a new nav item for the new section
   const newLi = addLinkToNav(newSection);
 
   console.log(
     "New section with id " + newSection.getAttribute("id") + " added."
   );
+}
+
+function addLinkToNav(section) {
+  const navbarlist = document.getElementById("navbar__list");
+
+  const newLi = document.createElement("li");
+  const navItemText = section.getAttribute("data-nav");
+
+  newLi.textContent = navItemText;
+  newLi.className = "menu__link";
+
+  newLi.addEventListener("click", function(event) {
+    event.preventDefault();
+    jumpToSection(section);
+  });
+
+  navbarlist.appendChild(newLi);
+}
+
+function jumpToSection(section) {
+  console.log(
+    "in jumpToSection: topPos = " + section.getBoundingClientRect().top
+  );
+  const yOffset_nav = document.querySelector(".page__header").clientHeight;
+  const yPos =
+    section.getBoundingClientRect().top + window.pageYOffset - yOffset_nav;
+  window.scrollTo({ top: yPos, behavior: "smooth" });
+}
+
+function setTopSectionActive() {
+  console.log("load or scroll event");
+
+  const sections = document.getElementsByTagName("section");
+
+  for (const section of sections) {
+    const sectionIsTopSection = isTopSection(section);
+    console.log(
+      section.getAttribute("data-nav") +
+        " is top section: " +
+        sectionIsTopSection
+    );
+    if (sectionIsTopSection) {
+      section.classList.add("your-active-class");
+    } else {
+      section.classList.remove("your-active-class");
+    }
+  }
+}
+
+function isTopSection(section) {
+  const yOffset_nav = document.querySelector(".page__header").clientHeight;
+  //const yOffset_nav = document.getElementById("navbar__list").clientHeight;
+  //const headerHeight = document.querySelector(".page__header").clientHeight;
+  //const yOffset_nav = document.getElementById("navbar__list").clientHeight;
+  const sectionTop = section.getBoundingClientRect().top;
+  const sectionHeight = section.getBoundingClientRect().height;
+
+  //section is activated when top of section is between
+  //position right below menu - 1 / 3 of section height
+  //and position right below menu + 2/3 of section height
+  const threshholdTop = -(yOffset_nav - sectionHeight / 3);
+  const threshholdBottom =
+    threshholdTop + (section.getBoundingClientRect().height / 3) * 2;
+
+  /*   console.log("isTopSection( " + section.getAttribute("data-nav") + " ):");
+  console.log("threshholdTop: " + threshholdTop);
+  console.log("threshholdBottom: " + threshholdBottom);
+  console.log(section.getAttribute("data-nav") + " sectionTop: " + sectionTop); */
+
+  const isTopSection =
+    sectionTop >= threshholdTop && sectionTop <= threshholdBottom;
+
+  /*   console.log(
+    " => " +
+      section.getAttribute("data-nav") +
+      " isTopSection = " +
+      isTopSection
+  ); */
+
+  return isTopSection;
 }
 
 /**
@@ -163,148 +188,35 @@ for (let i = 1; i <= 3; i++) {
 }
 const sections = document.getElementsByTagName("section");
 console.log("All sections added - number of sections = " + sections.length);
-/* 
-console.log("***Section Position Test***");
-for (const section of sections) {
-  const sectionTopPosition = section.getBoundingClientRect().top;
-  console.log(
-    section.getAttribute("data-nav") + " topposition = " + sectionTopPosition
-  );
-}
-console.log("***End of Section Position Test***"); */
+
+//hacky fix for menu overlapping content
+const headerHeight = document.querySelector(".page__header").clientHeight;
+const landingPageHeader = document.querySelector(".main__hero");
+landingPageHeader.style.paddingTop = headerHeight + "px";
 
 // Add class 'active' to section when near top of viewport
-function isTopSection(section) {
-  const yOffset_nav = document.getElementById("navbar__list").clientHeight;
-  const sectionHeight = section.getBoundingClientRect().height;
-  const sectionTop = section.getBoundingClientRect().top;
-  const threshholdTop = -(yOffset_nav - sectionHeight / 2);
-  //section.getBoundingClientRect().top + window.pageYOffset - yOffset_nav;
-  //section.getBoundingClientRect().top + window.pageYOffset - yOffset_nav;
-  const threshholdBottom =
-    threshholdTop + section.getBoundingClientRect().height / 2;
+//-> see helper functions: setTopSectionActive() & isTopSection(section)
 
-  console.log("isTopSection( " + section.getAttribute("data-nav") + " ):");
-  //console.log("yOffset_nav = " + yOffset_nav);
-  //console.log("window.pageYOffset = " + window.pageYOffset);
-  console.log("threshholdTop: " + threshholdTop);
-  console.log("threshholdBottom: " + threshholdBottom);
-  console.log(section.getAttribute("data-nav") + " sectionTop: " + sectionTop);
-
-  const isTopSection =
-    sectionTop >= threshholdTop && sectionTop <= threshholdBottom;
-
-  /*   console.log(
-    " => " +
-      section.getAttribute("data-nav") +
-      " isTopSection = " +
-      isTopSection
-  ); */
-
-  return isTopSection;
-}
-
-/* function isTopSection(section) {
-  const yOffset_nav = document.getElementById("navbar__list").clientHeight;
-  const sectionTop = section.getBoundingClientRect().top;
-  const threshholdTop = window.pageYOffset + yOffset_nav;
-  //section.getBoundingClientRect().top + window.pageYOffset - yOffset_nav;
-  //section.getBoundingClientRect().top + window.pageYOffset - yOffset_nav;
-  const threshholdBottom =
-    threshholdTop + section.getBoundingClientRect().height;
-
-  console.log("isTopSection( " + section.getAttribute("data-nav") + " ):");
-  console.log("yOffset_nav = " + yOffset_nav);
-  console.log("window.pageYOffset = " + window.pageYOffset);
-  console.log("threshholdTop = yOffset_nav + yOffset_nav" + threshholdTop);
-  console.log("threshholdBottom = " + threshholdBottom);
-  console.log("! sectionTop = " + sectionTop + " !");
-
-  const isTopSection =
-    sectionTop >= threshholdTop && sectionTop <= threshholdBottom;
-
-  console.log(" => isTopSection = " + isTopSection);
-
-  return isTopSection;
-} */
-
-function callbackFunc(event) {
-  console.log("LOAD or SCROLL");
-
-  const sections = document.getElementsByTagName("section");
-
-  for (const section of sections) {
-    const sectionIsTopSection = isTopSection(section);
-    console.log(
-      section.getAttribute("data-nav") +
-        " is top section: " +
-        isTopSection(section)
-    );
-    if (sectionIsTopSection) {
-      section.classList.add("your-active-class");
-    } else {
-      section.classList.remove("your-active-class");
-    }
-    /*     const sectionTopPosition = section.getBoundingClientRect().top;
-    console.log(
-      section.getAttribute("data-nav") + " topposition = " + sectionTopPosition
-    );
-    console.log(
-      section.getAttribute("data-nav") +
-        " is top section: " +
-        isTopSection(section)
-    ); */
-  }
-  //console.log("          ++++++          ");
-}
-
-/* document.addEventListener("DOMContentLoaded", function() {
-  const sections = document.getElementsByTagName("section");
-  console.log("OnDOMContentLoaded: sections.length = " + sections.length);
-
-  console.log("***Section Position Test II ***");
-  for (const section of sections) {
-    const sectionTopPosition = section.getBoundingClientRect.top;
-    console.log(
-      section.getAttribute("data-nav") + " topposition = " + sectionTopPosition
-    );
-  }
-  console.log("***End of Section Position Test II ***");
-}); */
-
-window.addEventListener("load", callbackFunc);
-window.addEventListener("scroll", callbackFunc);
-//////////////////////////////
 //toggle class
+//-> see helper functions: setTopSectionActive() & isTopSection(section)
 
 // Scroll to anchor ID using scrollTO event
+//-> see helper functions: jumpToSection(section)
 
 /**
  * End Main Functions
  * Begin Events
  *
  */
+window.addEventListener("load", setTopSectionActive);
+window.addEventListener("scroll", setTopSectionActive);
+//-> nav item listeners have been added in function addLinkToNav(section)
 
 // Build menu
+//-> see Main Functions & helper functions: buildStarterNav();
 
 // Scroll to section on link click
-
-/* function crollIntoView(event, section) {
-  event.preventDefault();
-  section.scrollIntoView({ left: 0, block: "start", behavior: "smooth" });
-} */
+//-> see helper functions:  nav item listeners have been added in function addLinkToNav(section)
 
 // Set sections as active
-function setActiveSection(event) {
-  const sections = document.getElementsByTagName("section");
-  const clickedSection = console.log(
-    event.target.getAttribute("data-nav") + " was clicked!"
-  );
-  for (const section of sections) {
-    if (event.target === section) {
-      section.classList.add("your-active-class");
-    } else {
-      section.classList.remove("your-active-class");
-    }
-  }
-}
+//-> see helper functions: setTopSectionActive() & isTopSection(section)
